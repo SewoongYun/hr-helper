@@ -287,9 +287,12 @@
   function render() {
     renderTop();
     VIEWS.forEach((v) => { views[v].hidden = v !== state.view; });
-    document.querySelectorAll('.nav [data-view]').forEach((b) => {
+    document.querySelectorAll('.nav [data-view], .tabbar [data-view], .more-sheet [data-view]').forEach((b) => {
       if (b.dataset.view === state.view) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
     });
+    // 아래 탭 바에 없는 화면을 보고 있으면 '더보기'를 켠 상태로 둔다
+    const inMore = !document.querySelector(`.tabbar [data-view="${state.view}"]`);
+    if (inMore) $('#moreBtn').setAttribute('aria-current', 'page'); else $('#moreBtn').removeAttribute('aria-current');
     ({ month: renderMonth, year: renderYear, grade: renderGrade, conv: renderConv, subj: renderSubj, forms: renderForms, res: renderRes })[state.view]();
   }
 
@@ -305,6 +308,7 @@
     else if (state.live) { text = '시트 연결 · 체크 공유 중'; st = 'live'; }
     else if (state.source === 'sheet') { text = '시트 연결 · 체크는 이 기기'; st = 'sheet'; }
     $('#statusBtn').dataset.state = st;
+    $('#statusBtn').title = `${text} (눌러서 시트 연결 설정)`;
     $('#statusText').textContent = text;
     $('#footSource').textContent = state.source === 'sheet'
       ? `업무 데이터: 구글 시트${state.updatedAt ? ` (불러온 시각 ${new Date(state.updatedAt).toLocaleString('ko-KR')})` : ''}`
@@ -1109,10 +1113,17 @@
     render();
     window.scrollTo({ top: 0 });
   }
-  document.querySelector('.nav').addEventListener('click', (ev) => {
-    const b = ev.target.closest('[data-view]');
-    if (b) switchView(b.dataset.view);
+  // 왼쪽 메뉴, 아래 탭 바, 더보기 시트 어디서 눌러도 같은 화면 이동
+  const moreSheet = $('#moreSheet');
+  document.addEventListener('click', (ev) => {
+    const b = ev.target.closest('.nav [data-view], .tabbar [data-view], .more-sheet [data-view]');
+    if (!b) return;
+    if (moreSheet.open) moreSheet.close();
+    switchView(b.dataset.view);
   });
+  $('#moreBtn').addEventListener('click', () => moreSheet.showModal());
+  // 시트 바깥(어두운 부분)을 누르면 닫는다
+  moreSheet.addEventListener('click', (ev) => { if (ev.target === moreSheet) moreSheet.close(); });
   window.addEventListener('hashchange', () => { const v = viewFromHash(); if (v && v !== state.view) switchView(v); });
   $('#classSelect').addEventListener('change', (ev) => {
     state.cls = ev.target.value;
@@ -1137,7 +1148,11 @@
     dialog.showModal();
   }
   $('#statusBtn').addEventListener('click', openSettings);
-  document.addEventListener('click', (ev) => { if (ev.target.closest('[data-open-settings]')) openSettings(); });
+  document.addEventListener('click', (ev) => {
+    if (!ev.target.closest('[data-open-settings]')) return;
+    if (moreSheet.open) moreSheet.close();
+    openSettings();
+  });
   $('#codeSave').addEventListener('click', async () => {
     const msg = $('#codeMsg');
     state.code = $('#codeInput').value.trim();

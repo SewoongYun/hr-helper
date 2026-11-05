@@ -76,9 +76,16 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round
   display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 9px;
   background: none; color: var(--ink-2); font-weight: 600; font-size: 14px; text-align: left; white-space: nowrap;
 }
-.nav button svg { width: 18px; height: 18px; flex: none; opacity: .85; }
+.nav button svg { width: 18px; height: 18px; flex: none; opacity: .85; transition: transform .15s ease; }
+.nav button .short { display: none; }
 .nav button:hover { background: var(--surface-2); color: var(--ink); }
+.nav button:active { transform: scale(.98); }
 .nav button[aria-current="page"] { background: var(--accent-soft); color: var(--accent-ink); }
+.nav button[aria-current="page"] svg { opacity: 1; }
+.tabbar, .more-sheet { display: none; }
+.view:not([hidden]) { animation: view-in .28s ease both; }
+@keyframes view-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .view:not([hidden]) { animation: none; } }
 
 .side-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
 .class-pick { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px; font-size: 13px; color: var(--muted); }
@@ -428,42 +435,107 @@ main { max-width: 1120px; }
   .conv-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 900px) {
-  .app { display: block; }
-  .side {
-    position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center;
-    gap: 10px 12px; padding: 10px 16px; border-right: 0; border-bottom: 1px solid var(--line);
-    background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(10px);
-  }
-  .brand { padding: 0; }
-  .brand-text span { display: none; }
-  .side-foot { margin: 0 0 0 auto; flex-direction: row; align-items: center; }
-  .class-pick > span { display: none; }
-  .status { padding: 6px 9px; }
-  .status #statusText { max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .nav { order: 3; flex-direction: row; width: 100%; overflow-x: auto; scrollbar-width: none; gap: 4px; margin: 0 -4px; }
-  .nav::-webkit-scrollbar { display: none; }
-  .nav-label { display: none; }
-  .nav button { width: auto; padding: 7px 11px; font-size: 13.5px; }
-  .nav button svg { display: none; }
-  .main { padding-top: 22px; }
   .month-body, .subj-layout { grid-template-columns: 1fr; }
   .events-box, .picker { position: static; max-height: none; }
   .full-table .two { grid-template-columns: 1fr; }
 }
-@media (max-width: 560px) {
-  body { font-size: 14px; }
+
+/* 중간 폭(태블릿·좁은 창): 아이콘과 짧은 이름으로 된 세로 탭 */
+@media (min-width: 720px) and (max-width: 1099px) {
+  .app { grid-template-columns: 88px minmax(0, 1fr); }
+  .side { padding: 18px 10px 14px; gap: 14px; align-items: stretch; }
+  .brand { justify-content: center; padding: 0; }
+  .brand-text { display: none; }
+  .nav { gap: 4px; }
+  .nav-label { margin: 6px 14px; height: 1px; background: var(--line); font-size: 0; }
+  .nav-label:first-child { display: none; }
+  .nav button {
+    position: relative; flex-direction: column; gap: 5px; padding: 11px 2px 9px; border-radius: 14px;
+    justify-content: center; text-align: center; font-size: 11.5px; font-weight: 650; white-space: normal; line-height: 1.2;
+  }
+  .nav button svg { width: 22px; height: 22px; }
+  .nav button .lbl { display: none; }
+  .nav button .short { display: block; }
+  .nav button[aria-current="page"]::before {
+    content: ''; position: absolute; left: -10px; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent);
+  }
+  .nav button[aria-current="page"] svg { transform: scale(1.06); }
+  .side-foot { gap: 6px; }
+  .class-pick { flex-direction: column; gap: 3px; padding: 0; font-size: 11px; }
+  .class-pick select { min-width: 0; width: 100%; padding: 6px 4px; font-size: 12.5px; text-align: center; }
+  .status { justify-content: center; padding: 9px 0; }
   .status #statusText { display: none; }
+  .status .dot { width: 9px; height: 9px; }
+  .main { padding: 28px clamp(16px, 3.5vw, 36px) 40px; }
+}
+
+/* 휴대폰: 위쪽은 얇은 머리줄, 메뉴는 아래쪽 탭 바 */
+@media (max-width: 719px) {
+  body { font-size: 14px; }
+  .app { display: block; }
+  .side {
+    position: sticky; top: 0; z-index: 20; height: auto; flex-direction: row; align-items: center; gap: 10px;
+    padding: 10px 16px; padding-top: max(10px, env(safe-area-inset-top)); border-right: 0; border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  }
+  .brand { padding: 0; gap: 9px; min-width: 0; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 9px; }
+  .brand-text span { display: none; }
+  .nav { display: none; }
+  .side-foot { margin: 0 0 0 auto; flex-direction: row; align-items: center; gap: 6px; }
+  .class-pick > span { display: none; }
+  .class-pick select { min-width: 0; padding: 6px 8px; }
+  .status { padding: 8px 10px; }
+  .status #statusText { display: none; }
+  .main { padding: 20px 16px calc(96px + env(safe-area-inset-bottom)); }
+  .foot { margin-top: 28px; }
+
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: saturate(1.4) blur(16px);
+    -webkit-backdrop-filter: saturate(1.4) blur(16px);
+  }
+  .tabbar button {
+    display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0 4px; border: 0; background: none;
+    color: var(--muted); font-size: 11px; font-weight: 650; -webkit-tap-highlight-color: transparent;
+  }
+  .tabbar svg { width: 46px; height: 28px; padding: 3px 12px; border-radius: 999px; transition: background .2s ease, color .2s ease; }
+  .tabbar button[aria-current="page"] { color: var(--ink); }
+  .tabbar button[aria-current="page"] svg { background: var(--accent-soft); color: var(--accent-ink); }
+  .tabbar button:active svg { transform: scale(.94); }
+
+  .more-sheet[open] {
+    display: block; position: fixed; inset: auto 0 0 0; margin: 0 auto; width: 100%; max-width: 560px; max-height: 80vh;
+    border: 0; border-radius: 22px 22px 0 0; padding: 10px 16px calc(18px + env(safe-area-inset-bottom));
+    background: var(--surface); color: var(--ink); animation: sheet-up .26s cubic-bezier(.2, .8, .2, 1);
+  }
+  .more-sheet::backdrop { background: rgba(10, 12, 18, .38); }
+  .grip { width: 38px; height: 4px; border-radius: 4px; background: var(--line-2); margin: 2px auto 14px; }
+  .more-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .more-grid button {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 14px; border-radius: 16px;
+    border: 1px solid var(--line); background: var(--surface-2); text-align: left;
+  }
+  .more-grid svg { width: 22px; height: 22px; margin-bottom: 8px; color: var(--accent-ink); }
+  .more-grid b { font-size: 14.5px; letter-spacing: -0.02em; }
+  .more-grid small { font-size: 12px; color: var(--muted); }
+  .more-grid button[aria-current="page"] { border-color: var(--accent); background: var(--accent-soft); }
+
   .hero-main { padding: 20px; flex-direction: column-reverse; align-items: flex-start; gap: 16px; }
   .ring { width: 88px; height: 88px; }
   .task-detail { padding-left: 16px; }
   .conv-range strong { font-size: 16px; }
   .score { flex-direction: column; align-items: flex-end; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 
 @media print {
   :root { --bg: #fff; --surface: #fff; }
   .app { display: block; }
-  .side, .month-rail, .toolbar, .memo, .memo-note, .foot, .upcoming { display: none !important; }
+  .side, .tabbar, .month-rail, .toolbar, .memo, .memo-note, .foot, .upcoming { display: none !important; }
   .main { padding: 0; }
   .hero, .month-body { grid-template-columns: 1fr; }
   .events-box { position: static; }
