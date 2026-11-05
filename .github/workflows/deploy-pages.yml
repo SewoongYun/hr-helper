@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 env:
-  SITE_DIR: "2차_개발/site"
+  SITE_DIR: "3차_개발/site"
 
 concurrency:
   group: pages
@@ -28,6 +28,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # 배포 전 점검: index.html 이 부르는 파일이 모두 있는지, JavaScript 문법이 맞는지 확인한다
+      - name: Check site files
+        run: |
+          set -e
+          cd "$SITE_DIR"
+          test -f index.html
+          for f in $(grep -oE '(src|href)="[^"#:]+\.(js|css)' index.html | sed -E 's/^(src|href)="//'); do
+            test -f "$f" || { echo "없는 파일: $f"; exit 1; }
+          done
+          for f in *.js; do node --check "$f"; done
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
