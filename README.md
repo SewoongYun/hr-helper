@@ -102,6 +102,14 @@ git push
 
 업무 내용만 바꿀 때는 Git 없이 **시트만** 고치면 됩니다.
 
+D 드라이브에서 git 명령이 `detected dubious ownership` 오류를 내면 한 번만 아래를 실행합니다.
+
+```bash
+git config --global --add safe.directory "D:/수학과/★ 2026 수학과(윤세웅)/클로드로 개발하기/자체 개발 앱/고3 담임 업무 도우미"
+```
+
+커밋 작성자 이메일은 공개 저장소에 개인 이메일이 남지 않도록 `SewoongYun@users.noreply.github.com`으로 설정해 두었습니다.
+
 ## 4. 폼 요약 설정하기
 
 `폼 요약` 탭에 한 줄씩 적습니다.
