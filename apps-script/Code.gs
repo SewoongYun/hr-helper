@@ -3,8 +3,8 @@
  * 업무표 구글 시트 > 확장 프로그램 > Apps Script 에 이 파일 내용을 그대로 붙여 넣습니다.
  * 코드를 고친 뒤에는 "배포 > 배포 관리 > 편집 > 새 버전"으로 다시 배포해야 반영됩니다.
  *
- * 사이트가 읽는 탭: 설정, 월별 요약, 업무, 일정, 자료  (누구나 읽기 가능)
- * 학년 코드가 있어야 하는 것: 진행(체크 저장·읽기), 폼 요약(응답 수 집계)
+ * 사이트가 읽는 탭: 설정, 월별 요약, 업무, 일정, 자료, 권장과목  (누구나 읽기 가능)
+ * 학년 코드가 있어야 하는 것: 진행(체크 저장·읽기), 폼 요약(응답 수 집계), 권장과목 탭 처음 채우기
  * 폼 요약은 응답 수와 날짜별 인원만 보내고, 학생 이름이나 연락처는 사이트로 보내지 않습니다.
  */
 
@@ -35,7 +35,15 @@ const TABS = {
       '중복 확인 열 키워드': 'uniqueKey', '대상 인원': 'target', '설명': 'desc',
     },
   },
+  recommend: {
+    name: '권장과목',
+    headers: {
+      '대학': 'univ', '모집단위': 'unit', '핵심과목': 'core', '권장과목': 'rec',
+      '반영과목(구분 없음)': 'all', '비고': 'note', '자료집 쪽': 'page',
+    },
+  },
 };
+const MAX_RECOMMEND_ROWS = 2000;
 
 // 설정 탭의 '항목' 이름
 const SETTING_KEYS = { '학년도': 'year', '대입 학년도': 'admissionYear', '학교': 'school', '반 목록': 'classes', '학년 코드': 'code' };
@@ -59,6 +67,7 @@ function doPost(e) {
     if (body.action === 'progress') return json_({ ok: true, progress: readProgress_() });
     if (body.action === 'check') return json_(saveCheck_(body, settings));
     if (body.action === 'forms') return json_({ ok: true, forms: summarizeForms_() });
+    if (body.action === 'seedRecommend') return json_(seedRecommend_(body.rows));
     return json_({ ok: false, error: '알 수 없는 요청입니다.' });
   } catch (err) {
     console.error(err);
@@ -68,7 +77,7 @@ function doPost(e) {
 
 // 시트를 고치면 캐시를 비워 바로 반영되게 한다 (단순 트리거)
 function onEdit() {
-  try { CacheService.getScriptCache().remove('public'); } catch (err) { /* 무시 */ }
+  try { CacheService.getScriptCache().removeAll(['public', 'recommend']); } catch (err) { /* 무시 */ }
 }
 
 function onOpen() {
@@ -81,25 +90,57 @@ function onOpen() {
 // ───────── 읽기
 
 function readPublic_() {
-  const cache = CacheService.getScriptCache();
-  const cached = cache.get('public');
-  if (cached) return JSON.parse(cached);
-
-  const s = readSettings_();
-  const data = {
-    settings: { year: s.year, admissionYear: s.admissionYear, school: s.school, classes: s.classes },
-    months: readRows_('months'),
-    tasks: readRows_('tasks'),
-    events: readRows_('events'),
-    resources: readRows_('resources'),
-    updatedAt: new Date().toISOString(),
-  };
-  try {
-    cache.put('public', JSON.stringify(data), CACHE_SECONDS);
-  } catch (err) {
-    console.warn(err); // 캐시는 100KB 제한이 있다. 실패해도 응답은 정상
-  }
+  const data = cached_('public', function () {
+    const s = readSettings_();
+    return {
+      settings: { year: s.year, admissionYear: s.admissionYear, school: s.school, classes: s.classes },
+      months: readRows_('months'),
+      tasks: readRows_('tasks'),
+      events: readRows_('events'),
+      resources: readRows_('resources'),
+      updatedAt: new Date().toISOString(),
+    };
+  });
+  // 권장과목 표는 커서 따로 캐시한다
+  data.recommend = cached_('recommend', function () { return readRows_('recommend'); });
   return data;
+}
+
+function cached_(key, build) {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(key);
+  if (hit) return JSON.parse(hit);
+  const value = build();
+  try {
+    cache.put(key, JSON.stringify(value), CACHE_SECONDS);
+  } catch (err) {
+    console.warn(err); // 캐시는 키 하나에 100KB 제한이 있다. 실패해도 응답은 정상
+  }
+  return value;
+}
+
+// 사이트에 들어 있는 권장과목 표를 비어 있는 '권장과목' 탭에 한 번 채운다
+function seedRecommend_(rows) {
+  if (!Array.isArray(rows) || !rows.length || rows.length > MAX_RECOMMEND_ROWS) return { ok: false, error: '보낼 내용이 올바르지 않습니다.' };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const sheet = getTab_('recommend');
+    if (sheet.getLastRow() > 1) return { ok: false, error: "'권장과목' 탭에 이미 내용이 있습니다. 시트에서 직접 고쳐 주세요." };
+    const values = rows.map(function (r) {
+      return [0, 1, 2, 3, 4, 5, 6].map(function (i) {
+        const v = String((r || [])[i] == null ? '' : r[i]).slice(0, 2000);
+        // 수식으로 해석되지 않게 앞에 ' 를 붙인다
+        return /^[=+\-@]/.test(v) ? "'" + v : v;
+      });
+    });
+    sheet.getRange(2, 1, values.length, 7).setNumberFormat('@').setValues(values);
+    sheet.setColumnWidths(1, 2, 180).setColumnWidths(3, 3, 320).setColumnWidth(6, 260);
+    CacheService.getScriptCache().removeAll(['public', 'recommend']);
+  } finally {
+    lock.releaseLock();
+  }
+  return { ok: true, count: rows.length };
 }
 
 function readSettings_() {

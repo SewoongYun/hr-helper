@@ -4,53 +4,64 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>고3 담임 업무 도우미</title>
-<meta name="description" content="고3 담임 선생님이 달마다 챙길 상담·생기부·원서·면접 업무를 정리한 체크리스트">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f5bd3'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="description" content="고3 담임 선생님이 달마다 챙길 상담·생기부·원서·면접 업무, 내신 9↔5등급 변환, 대학별 권장과목 확인">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2317191e'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <div class="brand-mark" aria-hidden="true">✓</div>
-    <div>
-      <h1>고3 담임 업무 도우미</h1>
-      <p id="brandSub">2027학년도 · 2028학년도 대입</p>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M6 12.5l4 4L18 8"/></svg>
+      </div>
+      <div class="brand-text">
+        <strong>고3 담임 도우미</strong>
+        <span id="brandSub">2027학년도 · 2028 대입</span>
+      </div>
     </div>
+
+    <nav class="nav" aria-label="보기 선택">
+      <p class="nav-label">업무</p>
+      <button data-view="month"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>월별 업무</button>
+      <button data-view="year"><svg viewBox="0 0 24 24"><path d="M4 18h16M4 12h10M4 6h6"/><circle cx="18" cy="12" r="1.6"/><circle cx="13" cy="6" r="1.6"/></svg>연간 흐름</button>
+      <button data-view="grade"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>학년 현황</button>
+      <p class="nav-label">도구</p>
+      <button data-view="conv"><svg viewBox="0 0 24 24"><path d="M5 8h13l-3.5-3.5M19 16H6l3.5 3.5"/></svg>내신 9↔5 변환</button>
+      <button data-view="subj"><svg viewBox="0 0 24 24"><path d="M5 4.5h10.5L19 8v11.5H5z"/><path d="M8.5 13l2.2 2.2L15.5 10.5"/></svg>권장과목 확인</button>
+      <button data-view="forms"><svg viewBox="0 0 24 24"><path d="M5 19V11M10 19V5M15 19v-6M20 19V9"/></svg>폼 요약</button>
+      <p class="nav-label">자료</p>
+      <button data-view="res"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>자료실</button>
+    </nav>
+
+    <div class="side-foot">
+      <label class="class-pick">
+        <span>우리 반</span>
+        <select id="classSelect" aria-label="우리 반 선택"></select>
+      </label>
+      <button id="statusBtn" class="status" type="button" aria-haspopup="dialog">
+        <span class="dot"></span><span id="statusText">불러오는 중</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <main>
+      <section id="view-month" class="view" hidden></section>
+      <section id="view-year" class="view" hidden></section>
+      <section id="view-grade" class="view" hidden></section>
+      <section id="view-conv" class="view" hidden></section>
+      <section id="view-subj" class="view" hidden></section>
+      <section id="view-forms" class="view" hidden></section>
+      <section id="view-res" class="view" hidden></section>
+    </main>
+    <footer class="foot">
+      <p>대입 일정: 한국대학교육협의회 「2028학년도 대학입학전형기본사항」. '예정'으로 표시한 모의고사·수능 원서 일정은 발표되면 시트에서 고쳐 주세요.</p>
+      <p id="footSource"></p>
+    </footer>
   </div>
-  <div class="top-controls">
-    <label class="class-pick">
-      <span>우리 반</span>
-      <select id="classSelect" aria-label="우리 반 선택"></select>
-    </label>
-    <button id="statusBtn" class="status" type="button" aria-haspopup="dialog">
-      <span class="dot"></span><span id="statusText">불러오는 중</span>
-    </button>
-  </div>
-</header>
-
-<section id="ddays" class="ddays" aria-label="다가오는 주요 일정"></section>
-
-<nav class="tabs" role="tablist" aria-label="보기 선택">
-  <button role="tab" data-view="month" aria-selected="true">월별 업무</button>
-  <button role="tab" data-view="year" aria-selected="false">연간 흐름</button>
-  <button role="tab" data-view="grade" aria-selected="false">학년 현황</button>
-  <button role="tab" data-view="res" aria-selected="false">자료실</button>
-  <button role="tab" data-view="forms" aria-selected="false">폼 요약</button>
-</nav>
-
-<main>
-  <section id="view-month" class="view" role="tabpanel"></section>
-  <section id="view-year" class="view" role="tabpanel" hidden></section>
-  <section id="view-grade" class="view" role="tabpanel" hidden></section>
-  <section id="view-res" class="view" role="tabpanel" hidden></section>
-  <section id="view-forms" class="view" role="tabpanel" hidden></section>
-</main>
-
-<footer class="foot">
-  <p>대입 일정은 한국대학교육협의회 「2028학년도 대학입학전형기본사항」 기준입니다. '예정'으로 표시한 모의고사·수능 원서 일정은 발표되면 시트에서 고쳐 주세요.</p>
-  <p id="footSource"></p>
-</footer>
+</div>
 
 <dialog id="settings" class="sheet-dialog">
   <form method="dialog">
@@ -72,8 +83,10 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<script src="config.js"></script>
-<script src="data.js"></script>
-<script src="app.js"></script>
+<script src="config.js?v=2"></script>
+<script src="data.js?v=2"></script>
+<script src="grade.js?v=2"></script>
+<script src="recommend.js?v=2"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
