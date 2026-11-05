@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>고3 담임 업무 도우미</title>
+<meta name="description" content="고3 담임 선생님이 달마다 챙길 상담·생기부·원서·면접 업무를 정리한 체크리스트">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f5bd3'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='3.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">✓</div>
+    <div>
+      <h1>고3 담임 업무 도우미</h1>
+      <p id="brandSub">2027학년도 · 2028학년도 대입</p>
+    </div>
+  </div>
+  <div class="top-controls">
+    <label class="class-pick">
+      <span>우리 반</span>
+      <select id="classSelect" aria-label="우리 반 선택"></select>
+    </label>
+    <button id="statusBtn" class="status" type="button" aria-haspopup="dialog">
+      <span class="dot"></span><span id="statusText">불러오는 중</span>
+    </button>
+  </div>
+</header>
+
+<section id="ddays" class="ddays" aria-label="다가오는 주요 일정"></section>
+
+<nav class="tabs" role="tablist" aria-label="보기 선택">
+  <button role="tab" data-view="month" aria-selected="true">월별 업무</button>
+  <button role="tab" data-view="year" aria-selected="false">연간 흐름</button>
+  <button role="tab" data-view="grade" aria-selected="false">학년 현황</button>
+  <button role="tab" data-view="res" aria-selected="false">자료실</button>
+  <button role="tab" data-view="forms" aria-selected="false">폼 요약</button>
+</nav>
+
+<main>
+  <section id="view-month" class="view" role="tabpanel"></section>
+  <section id="view-year" class="view" role="tabpanel" hidden></section>
+  <section id="view-grade" class="view" role="tabpanel" hidden></section>
+  <section id="view-res" class="view" role="tabpanel" hidden></section>
+  <section id="view-forms" class="view" role="tabpanel" hidden></section>
+</main>
+
+<footer class="foot">
+  <p>대입 일정은 한국대학교육협의회 「2028학년도 대학입학전형기본사항」 기준입니다. '예정'으로 표시한 모의고사·수능 원서 일정은 발표되면 시트에서 고쳐 주세요.</p>
+  <p id="footSource"></p>
+</footer>
+
+<dialog id="settings" class="sheet-dialog">
+  <form method="dialog">
+    <h2>구글 시트 연결</h2>
+    <p id="connInfo" class="muted"></p>
+    <label class="field">
+      <span>학년 코드</span>
+      <input id="codeInput" type="password" autocomplete="off" placeholder="학년부에서 정한 코드">
+      <small>코드를 넣으면 체크한 내용이 시트에 저장되어 다른 기기, 다른 선생님과 공유됩니다. 코드는 이 브라우저에만 저장됩니다.</small>
+    </label>
+    <p id="codeMsg" class="msg" role="status"></p>
+    <div class="dialog-actions">
+      <button type="button" id="codeClear" class="ghost">코드 지우기</button>
+      <button type="button" id="codeSave" class="primary">확인</button>
+      <button value="close" class="ghost">닫기</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
