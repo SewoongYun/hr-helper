@@ -1276,7 +1276,7 @@
       <button data-mode="kyojik" aria-pressed="${m === 'kyojik'}">교직이수 개설 학과</button></div>`;
   }
 
-  function renderKyojik() {
+  function renderKyojik(target = views.subj) {
     const k = state.kj;
     const rows = state.kyojik;
     const areas = [...new Set(rows.map((r) => r.area).filter(Boolean))];
@@ -1300,9 +1300,11 @@
           <label class="sr-only" for="kjArea">지역 고르기</label>
           <select id="kjArea" class="select"><option value="">전체 지역</option>${areas.map((a) => `<option ${a === k.area ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select>
         </div>
+        <div id="kjResults">
         <div class="result-meta"><span>${byUniv.size}개 대학 · ${list.length}줄</span></div>
-        ${byUniv.size ? [...byUniv].map(card).join('') : '<div class="empty">찾는 학과가 없습니다. 다른 이름으로 찾아보세요.</div>'}`;
-    views.subj.innerHTML = `
+        ${byUniv.size ? [...byUniv].map(card).join('') : '<div class="empty">찾는 학과가 없습니다. 다른 이름으로 찾아보세요.</div>'}
+        </div>`;
+    target.innerHTML = `
       ${head('도구 · 2027학년도 기준', '교직이수 개설 학과',
         '대학별로 교직과정(중등 교원자격)을 이수할 수 있는 학과입니다. 사범대학이 아닌 학과를 고르는 학생 상담에 씁니다.')}
       ${subjModeHtml()}
@@ -1311,8 +1313,8 @@
       ${body}`;
   }
 
-  function renderSubj() {
-    if (state.subj.mode === 'kyojik') { renderKyojik(); return; }
+  function renderSubj(target = views.subj) {
+    if (state.subj.mode === 'kyojik') { renderKyojik(target); return; }
     const s = state.subj;
     const meta = window.RECOMMEND_META || {};
     const regions = [...new Set(state.recommend.map((r) => r.region).filter(Boolean))];
@@ -1362,7 +1364,7 @@
       </article>`;
     };
 
-    views.subj.innerHTML = `
+    target.innerHTML = `
       ${head('도구 · 2022 개정 교육과정', '대학별 권장과목 대조',
         '학생이 이수했거나 이수할 과목을 고르면, 대학이 밝힌 핵심·권장 과목과 대조합니다. 고른 과목은 저장되지 않습니다.')}
       ${subjModeHtml()}
@@ -1389,6 +1391,7 @@
             <label class="sr-only" for="subjUniv">대학 고르기</label>
             <select id="subjUniv" class="select"><option value="">전체 대학 (${univs.length})</option>${univs.map((u) => `<option ${u === s.univ ? 'selected' : ''}>${esc(u)}</option>`).join('')}</select>
           </div>
+          <div id="subjResults">
           <div class="result-meta">
             <span>자료 ${list.length}줄${list.length > shown.length ? ` 중 ${shown.length}줄 표시` : ''} <small class="muted">(한 줄에 여러 모집단위가 묶여 있을 수 있음)</small></span>
             ${picking ? `<div class="seg" role="group" aria-label="정렬"><button data-sort="source" aria-pressed="${s.sort === 'source'}">자료 순</button><button data-sort="fit" aria-pressed="${s.sort === 'fit'}">자동 확인 결과 순</button></div>` : '<span>과목을 고르면 대조 결과가 표시됩니다</span>'}
@@ -1398,6 +1401,7 @@
           ${list.length > shown.length ? `<p style="text-align:center"><button class="btn" data-more>더 보기 (${list.length - shown.length}줄 남음)</button></p>` : ''}
           ${seedOfferHtml()}
           <p class="muted" style="font-size:12px;margin-top:14px">출처: ${state.recommendSource === 'sheet' ? '구글 시트 \'권장과목\' 탭' : esc(meta.source || '')}. 권역별 엑셀 ${state.recommend.length.toLocaleString()}줄을 옮겨 두었습니다. 점선 항목은 자동 판정하지 않는 조건입니다(마우스를 올리거나 화면 읽기 프로그램으로 이유 확인).</p>
+          </div>
         </div>
       </div>`;
   }
@@ -1443,11 +1447,7 @@
     if (id !== 'subjSearch' && id !== 'kjSearch') return;
     if (id === 'kjSearch') state.kj.query = ev.target.value;
     else { state.subj.query = ev.target.value; state.subj.limit = 40; }
-    const pos = ev.target.selectionStart;
-    renderSubj();
-    const input = $(`#${id}`);
-    input.focus();
-    input.setSelectionRange(pos, pos);
+    refreshResults(views.subj, renderSubj, id === 'kjSearch' ? '#kjResults' : '#subjResults');
   });
   views.subj.addEventListener('change', (ev) => {
     if (ev.target.id === 'subjUniv') { state.subj.univ = ev.target.value; state.subj.limit = 40; renderSubjKeep(); }
@@ -1455,6 +1455,14 @@
     if (ev.target.id === 'subjRegion') { state.subj.region = ev.target.value; state.subj.univ = ''; state.subj.limit = 40; renderSubjKeep(); }
   });
   // 과목을 고를 때 왼쪽 목록의 스크롤 위치와 키보드 초점을 지킨다
+  // 검색어를 칠 때는 결과 부분만 바꾼다. 검색칸까지 다시 만들면 한글 조합이 끊겨 'ㅅㅜㅎㅏ'처럼 자모가 따로 들어간다
+  function refreshResults(view, render, sel) {
+    const live = view.querySelector(sel);
+    const tmp = document.createElement('div');
+    render(tmp);
+    const fresh = tmp.querySelector(sel);
+    if (live && fresh) live.replaceWith(fresh); else render();
+  }
   function renderSubjKeep() {
     const picker = views.subj.querySelector('.picker');
     const top = picker ? picker.scrollTop : 0;
@@ -1465,7 +1473,7 @@
 
   // ───────── 자료실
 
-  function renderRes() {
+  function renderRes(target = views.res) {
     const q = state.resQuery.toLowerCase();
     const list = state.data.resources.filter((r) => !q || (r.name + r.desc + r.cat).toLowerCase().includes(q));
     const cats = [...new Set(list.map((r) => r.cat))];
@@ -1477,27 +1485,25 @@
       missing ? `링크가 비어 있는 자료 ${missing}개: 구글 드라이브에 올린 뒤 시트의 '자료' 탭 링크 칸에 주소를 넣으면 열립니다.` : '',
       locked ? `교사용 자료 ${locked}개는 학년 코드를 넣어야 링크가 보입니다.` : '',
     ].filter(Boolean).join(' ');
-    views.res.innerHTML = `
+    target.innerHTML = `
       ${head('자료', '자료실', lead)}
       <div class="res-tools">
         <label class="sr-only" for="resSearch">자료 찾기</label>
         <input id="resSearch" type="search" placeholder="자료 이름으로 찾기" value="${esc(state.resQuery)}">
       </div>
+      <div id="resResults">
       ${cats.map((c) => `<section class="res-group"><h3>${esc(c)}</h3><div class="res-list">${list.filter((r) => r.cat === c).map((r) => {
         const u = used(r.id);
         return `<div class="card res"><b>${esc(r.name)}</b><p>${esc(r.desc)}</p>
           <div class="row"><span class="used">${u.length ? '쓰는 달: ' + u.join(', ') : ''}</span>
           ${r.url ? (r.url.startsWith('#') ? `<a class="btn" href="${esc(r.url)}">열기 →</a>` : `<a class="btn" href="${esc(r.url)}" target="_blank" rel="noopener">열기 ↗</a>`) : `<span class="btn off">${r.locked ? '교사용 · 코드 필요' : '링크 미등록'}</span>`}</div></div>`;
-      }).join('')}</div></section>`).join('') || '<div class="empty">찾는 자료가 없습니다.</div>'}`;
+      }).join('')}</div></section>`).join('') || '<div class="empty">찾는 자료가 없습니다.</div>'}
+      </div>`;
   }
   views.res.addEventListener('input', (ev) => {
     if (ev.target.id !== 'resSearch') return;
     state.resQuery = ev.target.value;
-    const pos = ev.target.selectionStart;
-    renderRes();
-    const input = $('#resSearch');
-    input.focus();
-    input.setSelectionRange(pos, pos);
+    refreshResults(views.res, renderRes, '#resResults');
   });
 
   // ───────── 폼 요약
