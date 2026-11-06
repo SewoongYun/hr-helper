@@ -2,3 +2,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 .claude/
+
+# 원본 자료(대교협 재배포 금지 PDF 등)는 저장소에 올리지 않는다
+핵심자료들/

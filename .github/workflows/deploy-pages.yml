@@ -1,5 +1,5 @@
 # main 브랜치에 올리면 지금 쓰는 버전의 site 폴더를 GitHub Pages로 자동 배포합니다.
-# 새 버전(3차_개발 등)을 만들면 아래 SITE_DIR 만 바꾸면 됩니다.
+# 새 버전(4차_개발 등)을 만들면 아래 SITE_DIR 만 바꾸면 됩니다.
 # 저장소 Settings > Pages > Source 를 "GitHub Actions"로 설정해야 동작합니다.
 name: Deploy site
 
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 env:
-  SITE_DIR: "3차_개발/site"
+  SITE_DIR: "4차_개발/site"
 
 concurrency:
   group: pages
