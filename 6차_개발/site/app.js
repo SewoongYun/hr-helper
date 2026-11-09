@@ -345,13 +345,25 @@
 
   // ───────── 서버(Apps Script)
 
-  async function api(action, payload) {
-    const res = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      // text/plain 이어야 브라우저가 사전 요청(CORS preflight)을 보내지 않는다
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(Object.assign({ action, code: state.code }, payload || {})),
-    });
+  async function api(action, payload, timeoutMs) {
+    // timeoutMs를 주면 그 시간 안에 답이 없을 때 요청을 멈춘다(다람이 AI 답변용)
+    const ctrl = timeoutMs ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : 0;
+    let res;
+    try {
+      res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        // text/plain 이어야 브라우저가 사전 요청(CORS preflight)을 보내지 않는다
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(Object.assign({ action, code: state.code }, payload || {})),
+        signal: ctrl ? ctrl.signal : undefined,
+      });
+    } catch (err) {
+      if (err.name === 'AbortError') throw new Error('답이 너무 늦어 기다리기를 멈췄습니다');
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
     const json = await res.json();
     if (!json.ok) {
       const err = new Error(json.error || '요청을 처리하지 못했습니다.');
@@ -1730,6 +1742,9 @@
     <path d="M18.5 18.4c3-1.6 6.6-2 9.6-1.6" stroke="#fff" stroke-opacity=".28" stroke-width="1.5" fill="none" stroke-linecap="round"/>
     <ellipse cx="21" cy="12.6" rx="5" ry="1.3" fill="#fff"/>
   </svg>`;
+  const CHAT_AI_SOURCES = 12;      // AI에 보내는 사이트 자료 수
+  const CHAT_AI_TEXT = 700;        // 자료 하나당 보내는 글자 수
+  const CHAT_TIMEOUT_MS = 60000;   // 이보다 오래 걸리면 찾은 자료만 보여 준다
   const CHAT_EXAMPLES = ['9월에 할 일', '수시 원서 접수 일정', '부산대 수학교육 권장과목', '수학과 교직이수 되는 대학', '지역의사제 지원자격'];
   const CHAT_HINTS = [
     [/교직/, '교직이수'], [/권장|반영|과목|이수/, '권장과목'], [/일정|날짜|언제|마감|접수|기간|발표/, '일정'],
@@ -1873,7 +1888,8 @@
     chatAdd('user', esc(q));
     chat.history.push({ role: 'user', text: q });
     const wait = chatAdd('bot', '<p class="chat-wait">다람이가 자료를 찾는 중…</p>');
-    const local = chatSearch(q, 30);
+    // AI에는 가장 맞는 12개만 짧게 잘라 보낸다(많이 보낼수록 답이 늦어진다)
+    const local = chatSearch(q, CHAT_AI_SOURCES);
     const notes = [];
     // 학번·연락처처럼 보이는 숫자가 있으면 서버(AI)로 보내지 않는다
     const personal = /\d{5,}|\d{2,3}-\d{3,4}-\d{4}|\d{1,2}\s*반\s*\d{1,2}\s*번/.test(q);
@@ -1881,12 +1897,18 @@
     let folder = [];
     let answer = '';
     if (state.live && !personal) {
+      const useAi = !!(chat.provider && chat.useAi);
+      // 사이트에서 찾은 결과는 바로 보여 주고, 서버(폴더 검색·AI)의 답은 오면 바꿔 넣는다
+      const top = local.slice(0, 5);
+      wait.innerHTML = `${top.length ? `<p>먼저 찾은 자료입니다.</p>${top.map((d) => chatSourceHtml(d)).join('')}` : ''}
+        <p class="chat-wait">${useAi ? '다람이가 AI로 정리하는 중… (보통 10~20초)' : '드라이브 폴더도 찾는 중…'}</p>`;
+      $('#chatLog').scrollTop = $('#chatLog').scrollHeight;
       try {
         const res = await api('chat', {
-          question: q, ai: !!(chat.provider && chat.useAi),
-          sources: local.map((d) => ({ kind: d.kind, title: d.title, text: d.text, ref: d.ref })),
+          question: q, ai: useAi,
+          sources: local.map((d) => ({ kind: d.kind, title: d.title, text: d.text.slice(0, CHAT_AI_TEXT), ref: d.ref })),
           history: chat.history.slice(-5, -1),
-        });
+        }, CHAT_TIMEOUT_MS);
         folder = (res.folder || []).map((h) => ({ kind: '참고자료', title: str(h.title), text: str(h.text), ref: str(h.ref), url: str(h.url) }));
         answer = str(res.answer);
         if (res.quota) notes.push('오늘 AI 질문 한도를 다 써서 찾은 자료만 보여 드립니다.');

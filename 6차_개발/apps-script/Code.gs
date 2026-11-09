@@ -11,6 +11,7 @@
  *   GEMINI_API_KEY 또는 ANTHROPIC_API_KEY  둘 중 하나가 있으면 AI 답변이 켜집니다(없으면 검색만)
  *   AI_PROVIDER      둘 다 있을 때 고르기: gemini / claude
  *   GEMINI_MODEL     기본 gemini-3.8-flash      CLAUDE_MODEL  기본 claude-opus-5-5 (싸게: claude-haiku-5-5)
+ *   GEMINI_THINKING  채팅 답의 생각 수준 low(기본·빠름) / medium / high
  *   CHAT_DAILY_LIMIT 하루 AI 질문 수 한도(학년 전체), 기본 200
  *   CHAT_FOLDER_ID   자료 폴더 ID. 비우면 '고3 담임 도우미 챗봇 자료' 이름의 폴더를 찾습니다
  *
@@ -506,7 +507,7 @@ function json_(data) {
 
 const CHAT_FOLDER_NAME = '고3 담임 도우미 챗봇 자료';
 const CHAT_MAX_QUESTION = 500;
-const CHAT_MAX_SOURCES = 30;     // 사이트가 보내는 근거 수
+const CHAT_MAX_SOURCES = 15;     // 사이트가 보내는 근거 수(많을수록 AI 답이 늦어진다)
 const CHAT_FOLDER_HITS = 8;      // 폴더에서 찾아 붙이는 문단 수
 const CHAT_CHUNK_CHARS = 700;    // 문단을 이 길이 안팎으로 묶는다
 const CHAT_MAX_FILES = 60;
@@ -535,7 +536,7 @@ function chat_(body) {
     return { ok: true, folder: folder.hits, folderNote: folder.note, provider: provider, quota: true };
   }
   const site = (Array.isArray(body.sources) ? body.sources : []).slice(0, CHAT_MAX_SOURCES).map(function (s) {
-    return { kind: clip_(s.kind, 20), title: clip_(s.title, 200), text: clip_(s.text, 1500), ref: clip_(s.ref, 100) };
+    return { kind: clip_(s.kind, 20), title: clip_(s.title, 200), text: clip_(s.text, 800), ref: clip_(s.ref, 100) };
   });
   // 번호는 사이트 자료 1..n 다음에 폴더 문단이 이어진다. 사이트는 같은 순서로 출처를 보여 준다
   const sources = site.concat(folder.hits.map(function (h) { return { kind: '참고자료', title: h.title, text: h.text, ref: h.ref }; }));
@@ -619,16 +620,25 @@ function callClaude_(system, userText) {
 function callGemini_(system, userText) {
   const p = chatProps_();
   const model = String(p.getProperty('GEMINI_MODEL') || 'gemini-3.8-flash').trim();
-  const res = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
-    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-    headers: { 'x-goog-api-key': p.getProperty('GEMINI_API_KEY') },
-    payload: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: 'user', parts: [{ text: userText }] }],
-    }),
-  });
-  const json = JSON.parse(res.getContentText() || '{}');
-  if (res.getResponseCode() !== 200) throw new Error('Gemini ' + res.getResponseCode() + ': ' + ((json.error && json.error.message) || ''));
+  const send = function (body) {
+    const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
+      method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+      headers: { 'x-goog-api-key': p.getProperty('GEMINI_API_KEY') },
+      payload: JSON.stringify(body),
+    });
+    return { code: r.getResponseCode(), json: JSON.parse(r.getContentText() || '{}') };
+  };
+  const body = {
+    systemInstruction: { parts: [{ text: system }] },
+    contents: [{ role: 'user', parts: [{ text: userText }] }],
+    // 채팅 답은 깊이 생각할 필요가 적어 '생각' 수준을 낮춰 빨리 답하게 한다
+    generationConfig: { thinkingConfig: { thinkingLevel: String(p.getProperty('GEMINI_THINKING') || 'low') } },
+  };
+  let out = send(body);
+  // 이 설정을 모르는 모델이면 설정을 빼고 한 번 더 보낸다
+  if (out.code === 400 && /thinking/i.test(JSON.stringify(out.json))) { delete body.generationConfig; out = send(body); }
+  const json = out.json;
+  if (out.code !== 200) throw new Error('Gemini ' + out.code + ': ' + ((json.error && json.error.message) || ''));
   const cand = (json.candidates || [])[0];
   const text = cand && cand.content ? (cand.content.parts || []).map(function (x) { return x.text || ''; }).join('').trim() : '';
   if (!text) throw new Error('빈 답변' + (cand && cand.finishReason ? ' (' + cand.finishReason + ')' : ''));
