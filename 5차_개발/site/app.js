@@ -1705,24 +1705,30 @@
   // 2) 시트에 연결되어 있으면 서버가 드라이브 '챗봇 자료' 폴더도 찾아 준다
   // 3) 서버에 AI 키가 있으면 찾은 자료만 근거로 AI가 문장으로 정리한다. 근거 번호 [n]은 아래 출처 목록과 이어진다
 
-  // 자료 도우미 캐릭터 '다람이' (직접 그린 SVG)
+  // 자료 도우미 캐릭터 '다람이': 하얀 로봇 몸에 다람쥐 귀·꼬리·도토리 (직접 그린 SVG)
   const SQUIRREL_SVG = `<svg class="squirrel" viewBox="0 0 64 64" aria-hidden="true">
-    <path d="M44 55c11-2 18-13 14-24-2-8-10-12-16-9 5 3 8 9 5 15-2 4-7 6-7 11 0 3 1 6 4 7z" fill="#c98a4b"/>
-    <path d="M48 25c4 2 7 6 7 11" stroke="#ebbd86" stroke-width="3" fill="none" stroke-linecap="round"/>
-    <ellipse cx="28" cy="47" rx="14" ry="12" fill="#b87333"/>
-    <ellipse cx="28" cy="50" rx="8.5" ry="8" fill="#f6dfba"/>
-    <path d="M14 18 12 5l10 8z" fill="#a8652b"/><path d="M37 13l8-8-1 13z" fill="#a8652b"/>
-    <path d="M15.5 15.5 14.6 9l5 4z" fill="#f3b8a0"/><path d="M39.5 13l4-4-.5 6z" fill="#f3b8a0"/>
-    <circle cx="28" cy="26" r="15" fill="#c27c3c"/>
-    <ellipse cx="28" cy="31" rx="10" ry="8" fill="#f6dfba"/>
-    <circle cx="22" cy="24" r="2.7" fill="#2a1d14"/><circle cx="34" cy="24" r="2.7" fill="#2a1d14"/>
-    <circle cx="22.9" cy="23" r=".95" fill="#fff"/><circle cx="34.9" cy="23" r=".95" fill="#fff"/>
-    <ellipse cx="28" cy="29" rx="2.1" ry="1.5" fill="#5a3a26"/>
-    <path d="M28 30.5V32m-2.6.4c1 1 2.1 1 2.6 0 .5 1 1.6 1 2.6 0" stroke="#5a3a26" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-    <circle cx="18" cy="30" r="2.3" fill="#f4a3a0" opacity=".75"/><circle cx="38" cy="30" r="2.3" fill="#f4a3a0" opacity=".75"/>
-    <ellipse cx="28" cy="48.5" rx="4.2" ry="4.6" fill="#9a5b2a"/>
-    <path d="M23.4 46c0-3.4 9.2-3.4 9.2 0z" fill="#6b3f1f"/><path d="M28 42.6v-1.8" stroke="#6b3f1f" stroke-width="1.3" stroke-linecap="round"/>
-    <ellipse cx="22.6" cy="46.5" rx="2.7" ry="2.1" fill="#b87333"/><ellipse cx="33.4" cy="46.5" rx="2.7" ry="2.1" fill="#b87333"/>
+    <defs>
+      <linearGradient id="sqrW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d6deec"/></linearGradient>
+      <linearGradient id="sqrV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3566"/><stop offset="1" stop-color="#0c1023"/></linearGradient>
+      <linearGradient id="sqrT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4b06a"/><stop offset="1" stop-color="#c2692a"/></linearGradient>
+      <linearGradient id="sqrE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c8fbff"/><stop offset="1" stop-color="#38c9ff"/></linearGradient>
+    </defs>
+    <path d="M43 57c12-1 19-12 16-23-2-8-10-13-17-10 6 3 9 9 6 15-2 5-8 7-8 12 0 3 1 5 3 6z" fill="url(#sqrT)"/>
+    <path d="M48 27c5 2 8 7 8 12" stroke="#ffd7a6" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+    <rect x="8.5" y="39" width="7" height="13" rx="3.5" transform="rotate(28 12 45.5)" fill="url(#sqrW)"/>
+    <rect x="17" y="40" width="24" height="19" rx="10" fill="url(#sqrW)"/>
+    <ellipse cx="29" cy="51" rx="3.1" ry="3.5" fill="#c2692a"/>
+    <path d="M25.6 49c0-2.7 6.8-2.7 6.8 0z" fill="#7a4520"/><path d="M29 46.4v-1.4" stroke="#7a4520" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M15 17 14 4l10 8z" fill="url(#sqrW)"/><path d="M43 17l1-13-10 8z" fill="url(#sqrW)"/>
+    <path d="M16.4 14.4 15.9 8l4.8 4z" fill="#ffc1a6"/><path d="M41.6 14.4l.5-6.4-4.8 4z" fill="#ffc1a6"/>
+    <rect x="11" y="10" width="36" height="30" rx="14" fill="url(#sqrW)"/>
+    <rect x="7.5" y="20" width="5" height="11" rx="2.5" fill="#3d7bff"/><rect x="45.5" y="20" width="5" height="11" rx="2.5" fill="#3d7bff"/>
+    <rect x="15" y="15" width="28" height="21" rx="10" fill="url(#sqrV)"/>
+    <rect x="21" y="20.5" width="4.2" height="6.8" rx="2.1" fill="url(#sqrE)"/><rect x="32.8" y="20.5" width="4.2" height="6.8" rx="2.1" fill="url(#sqrE)"/>
+    <path d="M25.6 30.2c2 2 4.8 2 6.8 0" stroke="#7fe8ff" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <ellipse cx="19.3" cy="30.4" rx="2" ry="1.2" fill="#ff8fb3" opacity=".6"/><ellipse cx="38.7" cy="30.4" rx="2" ry="1.2" fill="#ff8fb3" opacity=".6"/>
+    <path d="M18.5 18.4c3-1.6 6.6-2 9.6-1.6" stroke="#fff" stroke-opacity=".28" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="21" cy="12.6" rx="5" ry="1.3" fill="#fff"/>
   </svg>`;
   const CHAT_EXAMPLES = ['9월에 할 일', '수시 원서 접수 일정', '부산대 수학교육 권장과목', '수학과 교직이수 되는 대학', '지역의사제 지원자격'];
   const CHAT_HINTS = [

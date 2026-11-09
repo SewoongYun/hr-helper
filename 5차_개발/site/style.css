@@ -587,7 +587,7 @@ svg.squirrel { stroke: none; stroke-width: 0; } /* 아이콘용 전역 svg 외�
 }
 .chat-fab-char {
   width: 68px; height: 68px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--surface); border: 2px solid #ebcfa6; box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+  background: radial-gradient(circle at 35% 30%, #f3f8ff, #cfe0ff); border: 2px solid #b9d0ff; box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
   animation: squirrel-bob 3.2s ease-in-out infinite;
 }
 .chat-fab-char .squirrel { width: 56px; height: 56px; margin-top: 4px; }
@@ -605,7 +605,7 @@ svg.squirrel { stroke: none; stroke-width: 0; } /* 아이콘용 전역 svg 외�
 body.chat-open .chat-fab { display: none; }
 @keyframes squirrel-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .chat-fab-char { animation: none; } }
-.chat-avatar { flex: none; width: 38px; height: 38px; border-radius: 50%; background: #fbf1e2; display: grid; place-items: center; }
+.chat-avatar { flex: none; width: 38px; height: 38px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f3f8ff, #cfe0ff); display: grid; place-items: center; }
 .chat-avatar .squirrel { width: 32px; height: 32px; margin-top: 3px; }
 .chat-panel {
   position: fixed; right: 22px; bottom: 22px; z-index: 50; width: min(420px, calc(100vw - 32px)); height: min(640px, calc(100vh - 44px));
