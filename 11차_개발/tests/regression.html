@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>회귀 테스트 · 고3 담임 업무 도우미 11차</title>
+<style>
+  :root { --bg: #f6f7fb; --ink: #141a2e; --muted: #6b7390; --ok: #12a17c; --bad: #e2553a; --line: #e2e6f0; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #0e1120; --ink: #eef0fb; --muted: #8a93b0; --line: #262d47; } }
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--ink); font: 14px/1.6 'Malgun Gothic', sans-serif; }
+  main { max-width: 980px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 18px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); }
+  .pass { color: var(--ok); font-weight: 700; }
+  .fail { color: var(--bad); font-weight: 700; }
+  .na { color: var(--muted); }
+  small { color: var(--muted); }
+  #summary { font-size: 16px; font-weight: 700; margin: 12px 0; }
+  iframe { width: 1px; height: 1px; border: 0; position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>회귀 테스트 · 11차</h1>
+  <p class="lead">외부 AI·실제 학생 정보 없이 모의 Google 환경과 모의 응답으로 검사합니다. '10차' 칸은 같은 검사를 10차 코드에 돌린 결과로, 고친 문제가 10차에서 실제로 재현되는지 보여 줍니다.</p>
+  <div id="summary">검사 중…</div>
+  <table>
+    <thead><tr><th>#</th><th>검사</th><th>11차</th><th>10차(비교)</th><th>내용</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+</main>
+<script src="regression.js"></script>
+</body>
+</html>
