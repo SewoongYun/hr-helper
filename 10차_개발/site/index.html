@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f5f1">
+<title>고3 담임 업무 도우미</title>
+<meta name="description" content="고3 담임 선생님이 달마다 챙길 상담·생기부·원서·면접 업무, 내신 9↔5등급 변환, 대학별 권장과목 확인">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236366f1'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="style.css?v=16">
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M6 12.5l4 4L18 8"/></svg>
+      </div>
+      <div class="brand-text">
+        <strong>고3 담임 도우미</strong>
+        <span id="brandSub">2027학년도 · 2028 대입</span>
+      </div>
+    </div>
+
+    <!-- 넓은 화면: 이름까지 보이는 메뉴 / 중간 폭: 아이콘과 짧은 이름만 있는 세로 탭 -->
+    <nav class="nav" aria-label="보기 선택">
+      <p class="nav-label">업무</p>
+      <button data-view="month" title="월별 업무"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="lbl">월별 업무</span><span class="short">월별</span></button>
+      <button data-view="year" title="연간 흐름"><svg viewBox="0 0 24 24"><path d="M4 18h16M4 12h10M4 6h6"/><circle cx="18" cy="12" r="1.6"/><circle cx="13" cy="6" r="1.6"/></svg><span class="lbl">연간 흐름</span><span class="short">흐름</span></button>
+      <button data-view="grade" title="학년 현황"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg><span class="lbl">학년 현황</span><span class="short">현황</span></button>
+      <p class="nav-label">도구</p>
+      <button data-view="conv" title="내신 9↔5 변환"><svg viewBox="0 0 24 24"><path d="M5 8h13l-3.5-3.5M19 16H6l3.5 3.5"/></svg><span class="lbl">내신 9↔5 변환</span><span class="short">변환</span></button>
+      <button data-view="subj" title="권장과목 확인"><svg viewBox="0 0 24 24"><path d="M5 4.5h10.5L19 8v11.5H5z"/><path d="M8.5 13l2.2 2.2L15.5 10.5"/></svg><span class="lbl">권장과목 확인</span><span class="short">권장과목</span></button>
+      <button data-view="forms" title="폼 요약"><svg viewBox="0 0 24 24"><path d="M5 19V11M10 19V5M15 19v-6M20 19V9"/></svg><span class="lbl">폼 요약</span><span class="short">폼 요약</span></button>
+      <p class="nav-label">자료</p>
+      <button data-view="res" title="자료실"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg><span class="lbl">자료실</span><span class="short">자료실</span></button>
+    </nav>
+
+    <div class="side-foot">
+      <label class="class-pick">
+        <span>우리 반</span>
+        <select id="classSelect" aria-label="우리 반 선택"></select>
+      </label>
+      <button id="statusBtn" class="status" type="button" aria-haspopup="dialog">
+        <span class="dot"></span><span id="statusText">불러오는 중</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <main>
+      <div id="bootMsg" class="boot" role="status">불러오는 중입니다…</div>
+      <noscript><div class="boot">이 사이트는 자바스크립트가 켜져 있어야 동작합니다.</div></noscript>
+      <section id="view-month" class="view" hidden></section>
+      <section id="view-year" class="view" hidden></section>
+      <section id="view-grade" class="view" hidden></section>
+      <section id="view-conv" class="view" hidden></section>
+      <section id="view-subj" class="view" hidden></section>
+      <section id="view-forms" class="view" hidden></section>
+      <section id="view-res" class="view" hidden></section>
+    </main>
+    <footer class="foot">
+      <p>대입 일정: 한국대학교육협의회 「2028학년도 대학입학전형기본사항」. '예정'으로 표시한 모의고사·수능 원서 일정은 발표되면 시트에서 고쳐 주세요.</p>
+      <p id="footSource"></p>
+    </footer>
+  </div>
+
+  <!-- 휴대폰: 아래쪽 탭 바 -->
+  <nav class="tabbar" aria-label="보기 선택">
+    <button data-view="month"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>월별</span></button>
+    <button data-view="year"><svg viewBox="0 0 24 24"><path d="M4 18h16M4 12h10M4 6h6"/><circle cx="18" cy="12" r="1.6"/><circle cx="13" cy="6" r="1.6"/></svg><span>흐름</span></button>
+    <button data-view="conv"><svg viewBox="0 0 24 24"><path d="M5 8h13l-3.5-3.5M19 16H6l3.5 3.5"/></svg><span>변환</span></button>
+    <button data-view="subj"><svg viewBox="0 0 24 24"><path d="M5 4.5h10.5L19 8v11.5H5z"/><path d="M8.5 13l2.2 2.2L15.5 10.5"/></svg><span>권장과목</span></button>
+    <button id="moreBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/></svg><span>더보기</span></button>
+  </nav>
+</div>
+
+<dialog id="moreSheet" class="more-sheet" aria-label="더보기">
+  <div class="grip" aria-hidden="true"></div>
+  <div class="more-grid">
+    <button data-view="grade"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg><b>학년 현황</b><small>반별 진행률</small></button>
+    <button data-view="forms"><svg viewBox="0 0 24 24"><path d="M5 19V11M10 19V5M15 19v-6M20 19V9"/></svg><b>폼 요약</b><small>응답 수·날짜별 인원</small></button>
+    <button data-view="res"><svg viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg><b>자료실</b><small>사이트·양식 링크</small></button>
+    <button data-open-settings><svg viewBox="0 0 24 24"><path d="M9.5 14.5l5-5M8 11l-2 2a3.5 3.5 0 0 0 5 5l2-2M16 13l2-2a3.5 3.5 0 0 0-5-5l-2 2"/></svg><b>시트 연결</b><small>학년 코드 넣기</small></button>
+  </div>
+  <form method="dialog"><button class="btn" style="width:100%;justify-content:center">닫기</button></form>
+</dialog>
+
+<dialog id="settings" class="sheet-dialog" aria-labelledby="settingsTitle">
+  <form method="dialog">
+    <h2 id="settingsTitle">구글 시트 연결</h2>
+    <p id="connInfo" class="muted"></p>
+    <p id="fetchInfo" class="muted small"></p>
+    <label class="field" for="codeInput">
+      <span>학년 코드</span>
+      <input id="codeInput" type="password" autocomplete="off" placeholder="학년부에서 정한 코드" aria-describedby="codeHelp">
+      <small id="codeHelp">코드를 아는 선생님은 모든 반의 체크와 메모를 보고 고칠 수 있습니다. 반 선택은 권한 구분이 아닙니다.</small>
+    </label>
+    <label class="check-line"><input id="codeRemember" type="checkbox"> 이 기기에 코드 기억하기 (개인 기기에서만)</label>
+    <p id="codeMsg" class="msg" role="status" aria-live="polite"></p>
+    <div id="pendingBox" class="pending-box" hidden></div>
+    <div class="dialog-actions">
+      <button type="button" id="refreshBtn" class="ghost">새로고침</button>
+      <button type="button" id="codeSave" class="primary">확인</button>
+    </div>
+    <div class="dialog-actions secondary">
+      <button type="button" id="codeClear" class="ghost">로그아웃(코드 지우기)</button>
+      <button type="button" id="localClear" class="ghost">이 기기 기록 지우기</button>
+      <button value="close" class="ghost">닫기</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // 파일을 못 불러오거나 오류로 멈추면 빈 화면 대신 안내를 보여 준다
+  window.addEventListener('error', function () {
+    var m = document.getElementById('bootMsg');
+    if (m && !window.__hrReady) { m.hidden = false; m.textContent = '사이트를 불러오는 중 오류가 났습니다. 새로고침해 보고, 계속되면 담당 선생님께 알려 주세요.'; }
+  });
+  setTimeout(function () {
+    var m = document.getElementById('bootMsg');
+    if (m && !window.__hrReady) m.textContent = '사이트 파일을 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해 주세요.';
+  }, 6000);
+</script>
+<script src="config.js?v=16"></script>
+<script src="data.js?v=16"></script>
+<script src="grade.js?v=16"></script>
+<script src="recommend.js?v=16"></script>
+<script src="app.js?v=16"></script>
+</body>
+</html>
